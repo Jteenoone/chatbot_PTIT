@@ -1,83 +1,122 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Quản trị PTIT Chatbot</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trang Quản trị - Trợ lý Ảo PTIT</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gradient-to-b from-red-50 to-white text-gray-900 antialiased">
-  <!-- Header -->
-  <header class="border-b border-red-100 bg-white/70 backdrop-blur sticky top-0 z-10">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 grid place-items-center rounded-xl bg-red-600 text-white font-bold">PT</div>
-        <div>
-          <h1 class="text-lg font-semibold text-red-700">Admin · PTIT Chatbot</h1>
-          <p class="text-xs text-gray-500">Quản lý tri thức (KB) & FAQ</p>
-        </div>
-      </div>
-      <a href="/" class="text-xs px-3 py-1 border border-red-200 text-red-700 rounded-lg hover:bg-red-50">← Về trang chat</a>
+
+<body class="bg-gray-50 text-gray-800">
+
+  <header class="bg-red-600 text-white py-4 mb-6 shadow">
+    <div class="max-w-5xl mx-auto px-4 flex justify-between items-center">
+      <h1 class="text-xl font-semibold">🔧 Quản trị hệ thống - Trợ lý Ảo PTIT</h1>
+      <a href="/" class="text-sm underline hover:text-gray-200">← Quay lại Chatbot</a>
     </div>
   </header>
 
-  <main class="max-w-5xl mx-auto p-4 md:p-6 space-y-6">
-    <!-- Auth Banner -->
-    <section id="authBox" class="bg-white border border-red-100 rounded-2xl shadow-sm p-4">
-      <h2 class="text-base font-semibold mb-2">Xác thực quản trị</h2>
-      <p class="text-sm text-gray-500 mb-3">Nhập mật khẩu admin để thao tác.</p>
-      <div class="flex gap-2">
-        <input id="adminPass" type="password" placeholder="Mật khẩu admin"
-               class="w-full rounded-xl border border-red-200 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-600" />
-        <button id="btnAuth" class="rounded-xl bg-red-600 text-white px-4 py-2 font-medium shadow hover:bg-red-700">Xác nhận</button>
-      </div>
-      <p id="authState" class="text-sm mt-2 text-gray-500"></p>
-    </section>
-
-    <!-- Tools (hidden until authed) -->
-    <section id="tools" class="hidden space-y-6">
-      <!-- Upload -->
-      <div class="bg-white border border-red-100 rounded-2xl shadow-sm p-4">
-        <h3 class="font-semibold mb-2">Upload tài liệu mới</h3>
-        <form id="uploadForm" class="flex items-center gap-3" enctype="multipart/form-data">
-          <input id="fileInput" name="file" type="file" class="text-sm" />
-          <input id="pwUpload" name="password" type="password" placeholder="Mật khẩu admin"
-                 class="rounded-xl border border-red-200 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-600" />
-          <button class="rounded-xl bg-red-600 text-white px-4 py-2 font-medium shadow hover:bg-red-700">Tải lên & cập nhật KB</button>
+  <main class="max-w-5xl mx-auto px-4">
+    {% if not auth %}
+      <!-- FORM ĐĂNG NHẬP ADMIN -->
+      <section class="bg-white border border-gray-200 rounded-2xl shadow p-6 max-w-md mx-auto">
+        <h2 class="text-lg font-semibold text-gray-700 mb-3">Đăng nhập quản trị</h2>
+        {% if error %}
+          <p class="text-red-600 text-sm mb-3">{{ error }}</p>
+        {% endif %}
+        <form method="POST" action="/admin-login" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium">Mật khẩu quản trị:</label>
+            <input type="password" name="password" required
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-red-600">
+          </div>
+          <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium">
+            Đăng nhập
+          </button>
         </form>
-        <p id="uploadMsg" class="text-sm mt-2 text-gray-500"></p>
-      </div>
+      </section>
 
-      <!-- KB Files -->
-      <div class="bg-white border border-red-100 rounded-2xl shadow-sm p-4">
-        <h3 class="font-semibold mb-2">Danh sách tài liệu trong <code>old_docs/</code></h3>
-        <ul class="list-disc ml-6 space-y-1 text-sm" id="fileList">
-          {% for f in knowledge_files %}
-            <li>{{ f }}</li>
-          {% endfor %}
-          {% if not knowledge_files %}
-            <li class="text-gray-500">Chưa có tài liệu.</li>
+    {% else %}
+      <!-- TRANG ADMIN CHÍNH -->
+      {% if message %}
+        <div class="bg-green-100 text-green-700 px-4 py-2 mb-4 rounded-lg">{{ message }}</div>
+      {% endif %}
+      {% if error %}
+        <div class="bg-red-100 text-red-700 px-4 py-2 mb-4 rounded-lg">{{ error }}</div>
+      {% endif %}
+
+      <div class="grid md:grid-cols-2 gap-6">
+
+        <!-- KHỐI UPLOAD -->
+        <section class="bg-white border border-gray-200 rounded-2xl shadow p-6">
+          <h2 class="text-lg font-semibold text-gray-700 mb-3">📄 Cập nhật tri thức</h2>
+          <form method="POST" action="/upload" enctype="multipart/form-data" class="space-y-3">
+            <div>
+              <label class="block text-sm font-medium mb-1">Chọn file tài liệu (.pdf, .txt, .docx...)</label>
+              <input type="file" name="file" required
+                     class="block w-full border border-gray-300 rounded-lg px-3 py-2">
+            </div>
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium">
+              📤 Tải lên và cập nhật KB
+            </button>
+          </form>
+        </section>
+
+        <!-- KHỐI FAQ -->
+        <section class="bg-white border border-gray-200 rounded-2xl shadow p-6">
+          <h2 class="text-lg font-semibold text-gray-700 mb-3">💬 Quản lý câu hỏi thường gặp (FAQ)</h2>
+          <form method="POST" action="/rebuild-faq" class="space-y-3">
+            <p class="text-sm text-gray-600">
+              Sau khi chỉnh sửa file <code>local_faq.json</code>, hãy nhấn nút này để cập nhật embedding cho FAQ.
+            </p>
+            <button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded-lg font-medium">
+              🔁 Rebuild FAQ
+            </button>
+          </form>
+        </section>
+
+        <!-- KHỐI RESET KB -->
+        <section class="bg-white border border-gray-200 rounded-2xl shadow p-6 md:col-span-2">
+          <h2 class="text-lg font-semibold text-gray-700 mb-3">🧹 Làm mới toàn bộ cơ sở tri thức</h2>
+          <form method="POST" action="/reset-knowledge" class="space-y-3">
+            <p class="text-sm text-gray-600">
+              Thao tác này sẽ xóa toàn bộ dữ liệu <code>ChromaDB</code> và xây lại tri thức từ thư mục <code>old_docs</code>.
+            </p>
+            <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium">
+              ⚠️ Reset Knowledge Base
+            </button>
+          </form>
+        </section>
+
+        <!-- DANH SÁCH FILE TRI THỨC -->
+        <section class="bg-white border border-gray-200 rounded-2xl shadow p-6 md:col-span-2">
+          <h2 class="text-lg font-semibold text-gray-700 mb-3">📚 Danh sách tài liệu hiện có</h2>
+          {% if knowledge_files %}
+            <ul class="list-disc pl-6 text-sm text-gray-700">
+              {% for f in knowledge_files %}
+                <li>{{ f }}</li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-gray-500 text-sm italic">Chưa có tài liệu nào trong hệ thống.</p>
           {% endif %}
-        </ul>
-      </div>
+        </section>
 
-      <!-- Reset KB -->
-      <div class="bg-white border border-red-100 rounded-2xl shadow-sm p-4">
-        <h3 class="font-semibold mb-2">Reset toàn bộ KB</h3>
-        <p class="text-sm text-gray-500 mb-3">Xoá ChromaDB hiện tại và build lại từ <code>old_docs/</code>.</p>
-        <form id="resetForm" class="flex items-center gap-3">
-          <input id="pwReset" name="password" type="password" placeholder="Mật khẩu admin"
-                 class="rounded-xl border border-red-200 px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-red-600" />
-          <button class="rounded-xl bg-white border border-red-200 text-red-700 px-4 py-2 font-medium shadow hover:bg-red-50">Reset KB</button>
-        </form>
-        <p id="resetMsg" class="text-sm mt-2 text-gray-500"></p>
+        <!-- LOGOUT -->
+        <section class="bg-white border border-gray-200 rounded-2xl shadow p-6 md:col-span-2">
+          <form method="POST" action="/admin-logout">
+            <button type="submit"
+                    class="w-full bg-gray-700 hover:bg-gray-800 text-white py-2 rounded-lg font-medium">
+              🚪 Đăng xuất
+            </button>
+          </form>
+        </section>
       </div>
-    </section>
+    {% endif %}
   </main>
 
-  <!-- Toast -->
-  <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 hidden px-4 py-2 rounded-xl bg-neutral-900 text-white shadow"></div>
-
-  <script src="/static/admin.js"></script>
+  <footer class="text-center text-gray-500 text-sm py-6 mt-10 border-t border-gray-200">
+    © 2025 PTIT Virtual Assistant – Flask + LangChain
+  </footer>
 </body>
 </html>

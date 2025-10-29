@@ -1,82 +1,83 @@
-import os
-import json
-import pickle
-from typing import Optional, Tuple, List
+import os, json, pickle, time
+from typing import Optional, List
 from dotenv import load_dotenv
-
 from langchain_openai import OpenAIEmbeddings
 import numpy as np
 
 load_dotenv()
 
 FAQ_FILE = "local_faq.json"
-FAQ_VECTOR_FILE = "faq_vectors.pkl"
-FAQ_THRESHOLD = 0.80
-
+VEC_FILE = "faq_vectors.pkl"
+THRESHOLD = 0.75
 
 class FAQService:
+    def __init__(self, model_name="text-embedding-3-small"):
+        self.path = os.path.join(os.path.dirname(__file__), FAQ_FILE)
+        self.vec_path = os.path.join(os.path.dirname(__file__), VEC_FILE)
+        self.emb = OpenAIEmbeddings(model=model_name)
+        self.faq = self._load_faq()
+        self.vectors = self._load_or_build_vectors()
 
-    def __init__(self, embeddings: OpenAIEmbeddings):
-        self.embeddings = embeddings
-        self.faq_data = self._load_faq_data()
-        self.faq_vectors = self._load_or_create_vectors()
-
-    def _load_faq_data(self) -> List[dict]:
-        path = os.path.join(os.path.dirname(__file__), FAQ_FILE)
-        if not os.path.exists(path):
-            print(f"Không tìm thấy {FAQ_FILE}")
+    def _load_faq(self) -> List[dict]:
+        if not os.path.exists(self.path):
             return []
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
+        try:
+            with open(self.path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return []
 
-    def _load_or_create_vectors(self) -> List[np.ndarray]:
-        vec_file = os.path.join(os.path.dirname(__file__), FAQ_VECTOR_FILE)
-
-        # Load nếu tồn tại
-        if os.path.exists(vec_file):
-            with open(vec_file, "rb") as f:
-                return pickle.load(f)
-
-        # Chưa có vector, tạo mới
-        questions = [faq["question"] for faq in self.faq_data]
+    def _load_or_build_vectors(self):
+        # load cached
+        if os.path.exists(self.vec_path):
+            try:
+                with open(self.vec_path, "rb") as f:
+                    return pickle.load(f)
+            except Exception:
+                pass
+        # build
+        questions = [q.get("question","") for q in self.faq]
         if not questions:
             return []
-
-        vectors = self.embeddings.embed_documents(questions)
-
-        with open(vec_file, "wb") as f:
+        vectors = self.emb.embed_documents(questions)
+        with open(self.vec_path, "wb") as f:
             pickle.dump(vectors, f)
-
-        print("Đã tạo embedding cho FAQ và lưu vào faq_vectors.pkl")
         return vectors
 
     @staticmethod
-    def _cosine_similarity(a, b) -> float:
+    def _cosine(a, b):
         a, b = np.array(a), np.array(b)
-        denom = np.linalg.norm(a) * np.linalg.norm(b)
+        denom = (np.linalg.norm(a) * np.linalg.norm(b))
         if denom == 0:
             return 0.0
         return float(np.dot(a, b) / denom)
 
-    def check(self, user_question: str) -> Optional[Tuple[str, float]]:
-        if not self.faq_data or not self.faq_vectors:
+    def check(self, text: str) -> Optional[str]:
+        """Trả answer string nếu match, hoặc None"""
+        if not self.faq or not self.vectors:
             return None
-
-        uq = user_question.lower().strip()
-        if len(uq.split()) > 12:
+        # short queries hơn ưu tiên FAQ
+        if len(text.split()) > 50:
             return None
-
-        user_vec = self.embeddings.embed_query(uq)
-
-        best_score = 0.0
-        best_answer = None
-
-        for faq, faq_vec in zip(self.faq_data, self.faq_vectors):
-            score = self._cosine_similarity(user_vec, faq_vec)
-            if score > best_score:
-                best_score = score
-                best_answer = faq["answer"]
-
-        if best_score >= FAQ_THRESHOLD:
-            return best_answer, best_score
+        try:
+            qvec = self.emb.embed_query(text)
+        except Exception:
+            return None
+        best_idx, best_score = None, 0.0
+        for i, v in enumerate(self.vectors):
+            s = self._cosine(qvec, v)
+            if s > best_score:
+                best_score, best_idx = s, i
+        if best_idx is not None and best_score >= THRESHOLD:
+            return self.faq[best_idx].get("answer")
         return None
+
+    def rebuild(self):
+        """Force rebuild vectors (call after editing local_faq.json)"""
+        self.faq = self._load_faq()
+        if os.path.exists(self.vec_path):
+            try:
+                os.remove(self.vec_path)
+            except Exception:
+                pass
+        self.vectors = self._load_or_build_vectors()

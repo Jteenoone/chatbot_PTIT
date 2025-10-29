@@ -4,7 +4,6 @@ from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import RetrievalQA
-
 from faq_service import FAQService
 
 load_dotenv()
@@ -22,33 +21,25 @@ class RAGChatbot:
             embedding_function=self.embeddings
         )
 
-        # Thêm FAQ
-        self.faq = FAQService(self.embeddings)
-
-        # LLM cho RAG
         self.llm = ChatOpenAI(
             model="gpt-4.1-nano",
             temperature=0.3
         )
 
-
         self.retriever = self.vector_store.as_retriever(search_kwargs={"k": 4})
 
-        # Prompt
+        # Prompt cho RAG
         template = """
         Bạn là trợ lý ảo của Học viện Công nghệ Bưu chính Viễn thông (PTIT).
-        Nhiệm vụ của bạn là chỉ trả lời các câu hỏi liên quan đến PTIT.
-        Nếu người dùng hỏi về các trường khác, hoặc chủ đề không liên quan tới PTIT,
-        hãy trả lời: "Tôi chỉ có thể cung cấp thông tin liên quan đến Học viện Công nghệ Bưu chính Viễn thông (PTIT)."
+        Hãy chỉ trả lời các câu hỏi liên quan đến PTIT.
+        Nếu câu hỏi nằm ngoài phạm vi PTIT, hãy trả lời:
+        "Mình chỉ có thể cung cấp thông tin liên quan đến Học viện Công nghệ Bưu chính Viễn thông (PTIT)."
 
-        Dưới đây là thông tin lấy được từ tài liệu nội bộ của PTIT (nếu có):
-        ----------------
+        --- Dữ liệu tri thức từ PTIT ---
         {context}
-        ----------------
-        Dựa trên thông tin trên, hãy trả lời câu hỏi:
+        --------------------------------
+        Dựa trên thông tin trên, hãy trả lời ngắn gọn, rõ ràng:
         {question}
-
-        Nếu không tìm thấy câu trả lời trong tài liệu PTIT, hãy nói rõ rằng bạn chưa có dữ liệu cụ thể.
         """
 
         prompt = PromptTemplate(
@@ -61,20 +52,25 @@ class RAGChatbot:
             retriever=self.retriever,
             chain_type="stuff",
             chain_type_kwargs={"prompt": prompt}
+
         )
 
-    def get_answer(self, question: str):
-        """Kiểm tra FAQ trước, nếu không có mới vào RAG"""
-        try:
-            # FAQ CHECK
-            faq_result = self.faq.check(question)
-            if faq_result:
-                # faq_result = answer_string or (answer,score)? → bản FAQ của bạn trả answer
-                return faq_result if isinstance(faq_result, str) else faq_result[0]
+        self.faq = FAQService(self.embeddings.model)
 
-            # RAG nếu không có FAQ
+    def get_answer(self, question: str):
+        """Trả lời câu hỏi dựa trên dữ liệu RAG"""
+        try:
+            faq_ans = None
+            if hasattr(self, "faq"):
+                faq_ans = self.faq.check(question)
+            if faq_ans:
+                return faq_ans
             response = self.qa_chain.invoke({"query": question})
-            return response["result"].strip()
+            result = response.get("result", "").strip()
+
+            if not result:
+                return "Mình chưa có dữ liệu về vấn đề này, bạn có thể hỏi lại cách khác nhé."
+            return result
 
         except Exception as e:
             return f"Lỗi khi truy vấn RAG: {str(e)}"

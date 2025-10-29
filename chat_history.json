@@ -1,10 +1,36 @@
 [
   {
-    "role": "user",
-    "text": "xin chào"
+    "id": "538b932f-74cc-4590-8d8b-bdbf508fe737",
+    "name": "xin chào",
+    "created": "2025-10-30 04:34:16",
+    "messages": [
+      {
+        "role": "user",
+        "text": "xin chào",
+        "ts": "2025-10-30T04:34:16.591523"
+      },
+      {
+        "role": "bot",
+        "text": "📘 Trả lời từ câu hỏi thường gặp:\nChào bạn Mình là trợ lý ảo PTIT. Bạn cần hỗ trợ điều gì nè?",
+        "ts": "2025-10-30T04:34:17.252779"
+      }
+    ]
   },
   {
-    "role": "bot",
-    "text": "Xin chào! Tôi chỉ có thể cung cấp thông tin liên quan đến Học viện Công nghệ Bưu chính Viễn thông (PTIT)."
+    "id": "c7f64f96-0413-440b-a064-5c17348ba80c",
+    "name": "test",
+    "created": "2025-10-30 04:34:34",
+    "messages": [
+      {
+        "role": "user",
+        "text": "hihi",
+        "ts": "2025-10-30T04:34:34.825118"
+      },
+      {
+        "role": "bot",
+        "text": "📘 Trả lời từ câu hỏi thường gặp:\nHello Mình có thể giúp gì cho bạn hôm nay?",
+        "ts": "2025-10-30T04:34:35.276624"
+      }
+    ]
   }
 ]
