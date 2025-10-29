@@ -1,6 +1,7 @@
 import glob
 import os
 import shutil
+import threading
 
 from certifi import where
 from dotenv import load_dotenv
@@ -57,23 +58,23 @@ def initialize_vector_store(db_path: str, embedding_model: str, docs_dir: str):
         embeddings = OpenAIEmbeddings(model=embedding_model)
 
         if os.path.exists(db_path):
-            print(f"Đang load Knowledge Base từ '{db_path}'...")
+            # print(f"Đang load Knowledge Base từ '{db_path}'...")
             vector_store = Chroma(
                 persist_directory=db_path,
                 embedding_function=embeddings
             )
         else:
-            print(f"Knowledge Base chưa tồn tại. Đang tạo mới từ '{docs_dir}'...")
+            # print(f"Knowledge Base chưa tồn tại. Đang tạo mới từ '{docs_dir}'...")
             chunks, _ = load_and_process_documents(docs_dir)
 
             if not chunks:
-                print("Không có tài liệu ban đầu, tạo một Knowledge Base rỗng.")
+                # print("Không có tài liệu ban đầu, tạo một Knowledge Base rỗng.")
                 vector_store = Chroma(
                     embedding_function=embeddings,
                     persist_directory=db_path
                 )
             else:
-                print(f"Đang embedding {len(chunks)} chunks...")
+                # print(f"Đang embedding {len(chunks)} chunks...")
                 vector_store = Chroma.from_documents(
                     chunks,
                     embedding=embeddings,
@@ -81,7 +82,7 @@ def initialize_vector_store(db_path: str, embedding_model: str, docs_dir: str):
                 )
 
             # vector_store.persist()
-            print(f"Đã tạo và lưu Knowledge Base vào '{db_path}'.")
+            # print(f"Đã tạo và lưu Knowledge Base vào '{db_path}'.")
 
         return vector_store
     except Exception as e:
@@ -118,7 +119,6 @@ def check_and_update_database(vector_store: Chroma, new_docs_dir: str, old_docs_
             print("\nBạn muốn cập nhật những file sau:")
             for f in existing:
                 print(f"  - {f}")
-
             confirm = input("\nNhập 0 để hủy bỏ, Nhập Enter để tiếp tục: ")
             if confirm.strip() == "0":
                 print("Đã hủy bỏ cập nhật.")
@@ -151,6 +151,33 @@ def check_and_update_database(vector_store: Chroma, new_docs_dir: str, old_docs_
 
     except Exception as e:
         print(f"Lỗi khi cập nhật database: {e}")
+
+update_lock = threading.Lock()
+
+def update_knowledge_base_auto():
+    if update_lock.locked():
+        print("[Auto Update] 🚧 Đang cập nhật, vui lòng đợi!")
+        return {"success": False, "message": "Đang có tác vụ cập nhật khác."}
+
+    with update_lock:  # Chỉ 1 update được phép chạy
+        try:
+            print("\n[Auto Update] Bắt đầu cập nhật tri thức...")
+
+            os.makedirs(OLD_DOCS_DIR, exist_ok=True)
+            os.makedirs(NEW_DOCS_DIR, exist_ok=True)
+
+            # Load DB (không tạo mới nếu có sẵn)
+            db = initialize_vector_store(CHROMA_DB_PATH, EMBEDDING_MODEL, OLD_DOCS_DIR)
+
+            # Update từ thư mục new_docs
+            check_and_update_database(db, NEW_DOCS_DIR, OLD_DOCS_DIR)
+
+            print("[Auto Update] Hoàn tất cập nhật tri thức.")
+            return {"success": True, "message": "Cập nhật thành công"}
+
+        except Exception as e:
+            print(f"[Auto Update] Lỗi: {e}")
+            return {"success": False, "message": str(e)}
 
 
 if __name__ == "__main__":
