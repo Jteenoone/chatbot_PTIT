@@ -1,123 +1,294 @@
 <!DOCTYPE html>
 <html lang="vi">
-<head>
-  <meta charset="utf-8" />
-  <title>Trợ lý Ảo PTIT</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    .scrollbar::-webkit-scrollbar{ width: 8px }
-    .scrollbar::-webkit-scrollbar-thumb{ background:#e5e7eb; border-radius:8px }
-  </style>
-</head>
-<body class="h-screen bg-gradient-to-b from-red-50 to-white text-gray-900">
-
-
-  <header class="border-b border-red-100 bg-white/70 sticky top-0 z-20">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 grid place-items-center rounded-xl bg-red-600 text-white font-bold">PT</div>
-        <h1 class="text-lg font-semibold text-red-700">Trợ lý Ảo PTIT</h1>
-      </div>
-      <div>
-        <a href="/admin" class="text-xs px-3 py-1 border border-red-200 text-red-700 rounded-lg hover:bg-red-50">Trang quản trị</a>
-      </div>
-    </div>
-  </header>
-
-
-  <div class="flex max-w-6xl mx-auto h-[calc(100vh-76px)] mt-6 gap-6 px-4">
-
-    <!-- Sidebar  -->
-    <aside class="w-1/5 bg-white border border-red-100 rounded-2xl p-4 overflow-y-auto scrollbar">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="font-semibold text-red-700">Lịch sử</h2>
-        <form method="POST" action="/new-session">
-          <button type="submit" class="text-xs px-2 py-1 border rounded-md text-red-700 border-red-200">Mới</button>
-        </form>
-      </div>
-
-      {% if sessions %}
-  <div class="space-y-2">
-    {% for s in sessions|reverse %}
-      <div class="p-3 rounded-lg border border-red-100 bg-white">
-        <div class="flex items-start justify-between gap-2">
-          <!-- Tên hội thoại -->
-          <a href="{{ url_for('index') }}?session_id={{ s.id }}"
-             class="text-sm text-gray-800 truncate block w-2/3">
-            {{ s.name }}
-          </a>
-
-          <div class="flex gap-2 items-center">
-            <!-- Nút đổi tên -->
-            <form method="GET" action="{{ url_for('index') }}">
-              <input type="hidden" name="session_id" value="{{ s.id }}">
-              <input type="hidden" name="rename" value="1">
-              <button type="submit" class="text-xs text-blue-500">✏️</button>
-            </form>
-
-            <!-- Nút xóa -->
-            <form method="POST" action="/delete-session" class="inline-block">
-              <input type="hidden" name="session_id" value="{{ s.id }}" />
-              <button type="submit" class="text-xs text-red-500">🗑️</button>
-            </form>
+  <head>
+    <meta charset="utf-8" />
+    <title>Trợ lý Ảo PTIT</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link
+      rel="apple-touch-icon"
+      sizes="57x57"
+      href="{{ url_for('static', filename='ico/apple-icon-57x57.png') }}"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="60x60"
+      href="{{ url_for('static', filename='ico/apple-icon-60x60.png') }}"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="72x72"
+      href="{{ url_for('static', filename='ico/apple-icon-72x72.png') }}"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="76x76"
+      href="{{ url_for('static', filename='ico/apple-icon-76x76.png') }}"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="114x114"
+      href="{{ url_for('static', filename='ico/apple-icon-114x114.png') }}"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="120x120"
+      href="{{ url_for('static', filename='ico/apple-icon-120x120.png') }}"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="144x144"
+      href="{{ url_for('static', filename='ico/apple-icon-144x144.png') }}"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="152x152"
+      href="{{ url_for('static', filename='ico/apple-icon-152x152.png') }}"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="{{ url_for('static', filename='ico/apple-icon-180x180.png') }}"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="{{ url_for('static', filename='ico/android-icon-192x192.png') }}"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="{{ url_for('static', filename='ico/favicon-32x32.png') }}"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="96x96"
+      href="{{ url_for('static', filename='ico/favicon-96x96.png') }}"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="{{ url_for('static', filename='ico/favicon-16x16.png') }}"
+    />
+    <link
+      rel="manifest"
+      href="{{ url_for('static', filename='ico/manifest.json') }}"
+    />
+    <meta name="msapplication-TileColor" content="#ffffff" />
+    <meta
+      name="msapplication-TileImage"
+      content="{{ url_for('static', filename='ico/ms-icon-144x144.png') }}"
+    />
+    <meta name="theme-color" content="#ffffff" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      .scrollbar::-webkit-scrollbar {
+        width: 8px;
+      }
+      .scrollbar::-webkit-scrollbar-thumb {
+        background: #e5e7eb;
+        border-radius: 8px;
+      }
+    </style>
+  </head>
+  <body class="h-screen bg-gradient-to-b from-red-50 to-white text-gray-900">
+    <header class="border-b border-red-100 bg-white/70 sticky top-0 z-20">
+      <div
+        class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="w-9 h-9 grid place-items-center rounded-xl bg-red-600 text-white font-bold"
+          >
+            PT
           </div>
+          <h1 class="text-lg font-semibold text-red-700">Trợ lý Ảo PTIT</h1>
         </div>
+        <div>
+          <a
+            href="/admin"
+            class="text-xs px-3 py-1 border border-red-200 text-red-700 rounded-lg hover:bg-red-50"
+            >Trang quản trị</a
+          >
+        </div>
+      </div>
+    </header>
 
-        <div class="mt-2 text-xs text-gray-500">{{ s.created }}</div>
-
-        <!-- Form đổi tên chỉ hiển thị khi rename=1 và session_id trùng -->
-        {% if request.args.get('rename') == '1' and request.args.get('session_id') == s.id %}
-          <form method="POST" action="/rename-session" class="mt-2 flex gap-2">
-            <input name="session_id" type="hidden" value="{{ s.id }}" />
-            <input name="new_name" type="text" placeholder="Nhập tên mới..."
-                   class="flex-1 text-sm border border-red-200 rounded px-2 py-1 focus:ring-1 focus:ring-red-500" />
-            <button type="submit" class="text-sm bg-red-600 text-white px-2 py-1 rounded">💾</button>
+    <div class="flex max-w-6xl mx-auto h-[calc(100vh-76px)] mt-6 gap-6 px-4">
+      <!-- Sidebar  -->
+      <aside
+        class="w-1/5 bg-white border border-red-100 rounded-2xl p-4 overflow-y-auto scrollbar"
+      >
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-semibold text-red-700">Lịch sử</h2>
+          <form method="POST" action="/new-session">
+            <button
+              type="submit"
+              class="text-xs px-2 py-1 border rounded-md text-red-700 border-red-200"
+            >
+              Mới
+            </button>
           </form>
-        {% endif %}
-      </div>
-    {% endfor %}
-  </div>
-{% else %}
-  <p class="text-gray-500 text-sm">Chưa có cuộc trò chuyện nào.</p>
-{% endif %}
-
-    </aside>
-
-    <!-- Chat area  -->
-    <main class="flex-1 bg-white border border-red-100 rounded-2xl p-4 flex flex-col">
-      <div class="flex-1 overflow-y-auto p-4 space-y-4 scrollbar" id="chat-window">
-        {% if current %}
-          {% for m in current.messages %}
-            {% if m.role == 'user' %}
-              <div class="flex justify-end items-start gap-3">
-                <div class="max-w-[80%] rounded-2xl px-4 py-3 bg-red-600 text-white">{{ m.text }}</div>
-                <div class="w-9 h-9 rounded-full bg-gray-800 text-white grid place-items-center">👤</div>
+        </div>
+        {% if sessions %}
+        <div class="space-y-2">
+          {% for s in sessions|reverse %}
+          <div class="p-3 rounded-lg border border-red-100 bg-white">
+            <div class="flex items-start justify-between gap-2">
+              <!-- Tên hội thoại -->
+              <a
+                href="{{ url_for('index') }}?session_id={{ s.id }}"
+                class="text-sm text-gray-800 truncate block w-2/3"
+              >
+                {{ s.name }}
+              </a>
+              <div class="flex gap-2 items-center">
+                <!-- Nút đổi tên -->
+                <form method="GET" action="{{ url_for('index') }}">
+                  <input type="hidden" name="session_id" value="{{ s.id }}" />
+                  <input type="hidden" name="rename" value="1" />
+                  <button type="submit" class="text-xs text-blue-500">
+                    ✏️
+                  </button>
+                </form>
+                <!-- Nút xóa -->
+                <form
+                  method="POST"
+                  action="/delete-session"
+                  class="inline-block"
+                >
+                  <input type="hidden" name="session_id" value="{{ s.id }}" />
+                  <button type="submit" class="text-xs text-red-500">🗑️</button>
+                </form>
               </div>
-            {% else %}
-              <div class="flex items-start gap-3">
-                <div class="w-9 h-9 rounded-full bg-red-600 text-white grid place-items-center">🤖</div>
-                <div class="max-w-[80%] rounded-2xl px-4 py-3 border border-red-100 bg-white whitespace-pre-wrap">{{ m.text }}</div>
-              </div>
+            </div>
+            <div class="mt-2 text-xs text-gray-500">{{ s.created }}</div>
+            <!-- Form đổi tên chỉ hiển thị khi rename=1 và session_id trùng -->
+            {% if request.args.get('rename') == '1' and
+            request.args.get('session_id') == s.id %}
+            <form
+              method="POST"
+              action="/rename-session"
+              class="mt-2 flex gap-2"
+            >
+              <input name="session_id" type="hidden" value="{{ s.id }}" />
+              <input
+                name="new_name"
+                type="text"
+                placeholder="Nhập tên mới..."
+                class="flex-1 text-sm border border-red-200 rounded px-2 py-1 focus:ring-1 focus:ring-red-500"
+              />
+              <button
+                type="submit"
+                class="text-sm bg-red-600 text-white px-2 py-1 rounded"
+              >
+                💾
+              </button>
+            </form>
             {% endif %}
-          {% endfor %}
-        {% else %}
-          <div class="flex items-start gap-3">
-            <div class="w-9 h-9 rounded-full bg-red-600 text-white grid place-items-center">🤖</div>
-            <div class="max-w-[80%] rounded-2xl px-4 py-3 border border-red-100 bg-white">Chào bạn 👋 Mình là Trợ lý Ảo PTIT. Hãy đặt câu hỏi liên quan đến PTIT nhé!</div>
           </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-gray-500 text-sm">Chưa có cuộc trò chuyện nào.</p>
         {% endif %}
-      </div>
+      </aside>
 
-      <!-- Input form -->
-      <form method="POST" action="/send" class="border-t border-red-100 pt-3 mt-3 flex gap-3 items-end">
-        <input type="hidden" name="session_id" value="{{ current.id if current else '' }}" />
-        <textarea name="message" rows="2" placeholder="Nhập câu hỏi..." required
-          class="flex-1 rounded-xl border border-red-200 px-3 py-2 resize-none"></textarea>
-        <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded-xl">Gửi</button>
-      </form>
-    </main>
-  </div>
-
-</body>
+      <!-- Chat area  -->
+      <main
+        class="flex-1 bg-white border border-red-100 rounded-2xl p-4 flex flex-col"
+      >
+        <div
+          class="flex-1 overflow-y-auto p-4 space-y-4 scrollbar"
+          id="chat-window"
+        >
+          {% if current %} {% for m in current.messages %} {% if m.role ==
+          'user' %}
+          <div class="flex justify-end items-start gap-3">
+            <div
+              class="max-w-[80%] rounded-2xl px-4 py-3 bg-red-600 text-white"
+            >
+              {{ m.text }}
+            </div>
+            <div
+              class="w-9 h-9 rounded-full bg-gray-800 text-white grid place-items-center"
+            >
+              👤
+            </div>
+          </div>
+          {% else %}
+          <div class="flex items-start gap-3">
+            <div
+              class="w-9 h-9 rounded-full bg-red-600 text-white grid place-items-center"
+            >
+              🤖
+            </div>
+            <div
+              class="max-w-[80%] rounded-2xl px-4 py-3 border border-red-100 bg-white whitespace-pre-wrap"
+            >
+              {{ m.text }}
+            </div>
+          </div>
+          {% endif %} {% endfor %} {% else %}
+          <div class="flex items-start gap-3">
+            <div
+              class="w-9 h-9 rounded-full bg-red-600 text-white grid place-items-center"
+            >
+              🤖
+            </div>
+            <div
+              class="max-w-[80%] rounded-2xl px-4 py-3 border border-red-100 bg-white"
+            >
+              Chào bạn 👋 Mình là Trợ lý Ảo PTIT. Hãy đặt câu hỏi liên quan đến
+              PTIT nhé!
+            </div>
+          </div>
+          {% endif %}
+        </div>
+        <!-- Input form -->
+        <form
+          method="POST"
+          action="/send"
+          class="border-t border-red-100 pt-3 mt-3 flex gap-3 items-end"
+          id="chat-form"
+        >
+          <input
+            type="hidden"
+            name="session_id"
+            value="{{ current.id if current else '' }}"
+          />
+          <textarea
+            name="message"
+            rows="2"
+            placeholder="Nhập câu hỏi..."
+            required
+            class="flex-1 rounded-xl border border-red-200 px-3 py-2 resize-none"
+            id="chat-input"
+          ></textarea>
+          <button
+            type="submit"
+            class="bg-red-600 text-white px-4 py-2 rounded-xl"
+          >
+            Gửi
+          </button>
+        </form>
+      </main>
+    </div>
+    <script>
+      // Submit on Enter, allow newline with Shift+Enter
+      const textarea = document.getElementById("chat-input");
+      const form = document.getElementById("chat-form");
+      if (textarea && form) {
+        textarea.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            form.submit();
+          }
+        });
+      }
+    </script>
+  </body>
 </html>
