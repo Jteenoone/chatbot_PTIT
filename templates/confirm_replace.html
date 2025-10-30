@@ -1,35 +1,128 @@
 <!DOCTYPE html>
 <html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Xác nhận ghi đè tài liệu - Trợ lý Ảo PTIT</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="apple-touch-icon"
+      sizes="57x57"
+      href="./ico/apple-icon-57x57.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="60x60"
+      href="./ico/apple-icon-60x60.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="72x72"
+      href="./ico/apple-icon-72x72.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="76x76"
+      href="./ico/apple-icon-76x76.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="114x114"
+      href="./ico/apple-icon-114x114.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="120x120"
+      href="./ico/apple-icon-120x120.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="144x144"
+      href="./ico/apple-icon-144x144.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="152x152"
+      href="./ico/apple-icon-152x152.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="./ico/apple-icon-180x180.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="./ico/android-icon-192x192.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="./ico/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="96x96"
+      href="./ico/favicon-96x96.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="./ico/favicon-16x16.png"
+    />
+    <link rel="manifest" href="./ico/manifest.json" />
+    <meta name="msapplication-TileColor" content="#ffffff" />
+    <meta name="msapplication-TileImage" content="./ico/ms-icon-144x144.png" />
+    <meta name="theme-color" content="#ffffff" />
+    <title>Xác nhận ghi đè tài liệu - Trợ lý Ảo PTIT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
 
-<body class="bg-gray-50 text-gray-800 flex items-center justify-center h-screen">
-  <div class="bg-white border border-gray-200 rounded-2xl shadow p-8 max-w-md text-center">
-    <h2 class="text-xl font-semibold text-gray-700 mb-4">⚠️ Tài liệu đã tồn tại</h2>
-    <p class="text-sm text-gray-600 mb-6">
-      Tài liệu <span class="font-semibold text-red-600">{{ file_name }}</span> đã tồn tại trong hệ thống.<br>
-      Bạn có chắc chắn muốn <strong>ghi đè</strong> lên tài liệu cũ không?
-    </p>
+  <body
+    class="bg-gray-50 text-gray-800 flex items-center justify-center h-screen"
+  >
+    <div
+      class="bg-white border border-gray-200 rounded-2xl shadow p-8 max-w-md text-center"
+    >
+      <h2 class="text-xl font-semibold text-gray-700 mb-4">
+        ⚠️ Tài liệu đã tồn tại
+      </h2>
+      <p class="text-sm text-gray-600 mb-6">
+        Tài liệu
+        <span class="font-semibold text-red-600">{{ file_name }}</span> đã tồn
+        tại trong hệ thống.<br />
+        Bạn có chắc chắn muốn <strong>ghi đè</strong> lên tài liệu cũ không?
+      </p>
 
-    <form method="POST" action="/confirm-replace" class="flex flex-col gap-3">
-      <input type="hidden" name="file_name" value="{{ file_name }}">
-      <button name="decision" value="yes" type="submit"
-              class="bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium">
-        ✅ Có, ghi đè tài liệu
-      </button>
-      <button name="decision" value="no" type="submit"
-              class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg font-medium">
-        ❌ Không, hủy bỏ
-      </button>
-    </form>
+      <form method="POST" action="/confirm-replace" class="flex flex-col gap-3">
+        <input type="hidden" name="file_name" value="{{ file_name }}" />
+        <button
+          name="decision"
+          value="yes"
+          type="submit"
+          class="bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium"
+        >
+          ✅ Có, ghi đè tài liệu
+        </button>
+        <button
+          name="decision"
+          value="no"
+          type="submit"
+          class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg font-medium"
+        >
+          ❌ Không, hủy bỏ
+        </button>
+      </form>
 
-    <div class="mt-6">
-      <a href="/admin" class="text-sm text-red-600 underline hover:text-red-800">← Quay lại trang quản trị</a>
+      <div class="mt-6">
+        <a
+          href="/admin"
+          class="text-sm text-red-600 underline hover:text-red-800"
+          >← Quay lại trang quản trị</a
+        >
+      </div>
     </div>
-  </div>
-</body>
+  </body>
 </html>

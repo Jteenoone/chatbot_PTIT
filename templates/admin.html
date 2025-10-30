@@ -1,61 +1,166 @@
 <!DOCTYPE html>
 <html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <title>Trang Quản trị - Trợ lý Ảo PTIT</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Trang Quản trị - Trợ lý Ảo PTIT</title>
+    <link
+      rel="apple-touch-icon"
+      sizes="57x57"
+      href="./ico/apple-icon-57x57.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="60x60"
+      href="./ico/apple-icon-60x60.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="72x72"
+      href="./ico/apple-icon-72x72.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="76x76"
+      href="./ico/apple-icon-76x76.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="114x114"
+      href="./ico/apple-icon-114x114.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="120x120"
+      href="./ico/apple-icon-120x120.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="144x144"
+      href="./ico/apple-icon-144x144.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="152x152"
+      href="./ico/apple-icon-152x152.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="./ico/apple-icon-180x180.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="./ico/android-icon-192x192.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="./ico/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="96x96"
+      href="./ico/favicon-96x96.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="./ico/favicon-16x16.png"
+    />
+    <link rel="manifest" href="./ico/manifest.json" />
+    <meta name="msapplication-TileColor" content="#ffffff" />
+    <meta name="msapplication-TileImage" content="./ico/ms-icon-144x144.png" />
+    <meta name="theme-color" content="#ffffff" />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
 
-<body class="bg-gray-50 text-gray-800">
+  <body class="bg-gray-50 text-gray-800">
+    <header class="bg-red-600 text-white py-4 mb-6 shadow">
+      <div class="max-w-5xl mx-auto px-4 flex justify-between items-center">
+        <h1 class="text-xl font-semibold">
+          🔧 Quản trị hệ thống - Trợ lý Ảo PTIT
+        </h1>
+        <a href="/" class="text-sm underline hover:text-gray-200"
+          >← Quay lại Chatbot</a
+        >
+      </div>
+    </header>
 
-  <header class="bg-red-600 text-white py-4 mb-6 shadow">
-    <div class="max-w-5xl mx-auto px-4 flex justify-between items-center">
-      <h1 class="text-xl font-semibold">🔧 Quản trị hệ thống - Trợ lý Ảo PTIT</h1>
-      <a href="/" class="text-sm underline hover:text-gray-200">← Quay lại Chatbot</a>
-    </div>
-  </header>
-
-  <main class="max-w-5xl mx-auto px-4">
-
-    {% if not auth %}
-      <section class="bg-white border border-gray-200 rounded-2xl shadow p-6 max-w-md mx-auto">
-        <h2 class="text-lg font-semibold text-gray-700 mb-3">Đăng nhập quản trị</h2>
+    <main class="max-w-5xl mx-auto px-4">
+      {% if not auth %}
+      <section
+        class="bg-white border border-gray-200 rounded-2xl shadow p-6 max-w-md mx-auto"
+      >
+        <h2 class="text-lg font-semibold text-gray-700 mb-3">
+          Đăng nhập quản trị
+        </h2>
         {% if error %}
-          <p class="text-red-600 text-sm mb-3">{{ error }}</p>
+        <p class="text-red-600 text-sm mb-3">{{ error }}</p>
         {% endif %}
         <form method="POST" action="/admin" class="space-y-4">
           <div>
             <label class="block text-sm font-medium">Mật khẩu quản trị:</label>
-            <input type="password" name="password" required
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-red-600">
+            <input
+              type="password"
+              name="password"
+              required
+              class="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-red-600"
+            />
           </div>
-          <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium">
+          <button
+            type="submit"
+            class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium"
+          >
             Đăng nhập
           </button>
         </form>
       </section>
 
-    {% else %}
+      {% else %}
       <!-- NỘI DUNG QUẢN TRỊ -->
       {% if message %}
-        <div class="bg-green-100 text-green-700 px-4 py-2 mb-4 rounded-lg">{{ message }}</div>
-      {% endif %}
-      {% if error %}
-        <div class="bg-red-100 text-red-700 px-4 py-2 mb-4 rounded-lg">{{ error }}</div>
+      <div class="bg-green-100 text-green-700 px-4 py-2 mb-4 rounded-lg">
+        {{ message }}
+      </div>
+      {% endif %} {% if error %}
+      <div class="bg-red-100 text-red-700 px-4 py-2 mb-4 rounded-lg">
+        {{ error }}
+      </div>
       {% endif %}
 
       <div class="grid md:grid-cols-2 gap-6">
-
         <!-- Upload tri thức -->
         <section class="bg-white border border-gray-200 rounded-2xl shadow p-6">
-          <h2 class="text-lg font-semibold text-gray-700 mb-3">📄 Cập nhật tri thức</h2>
-          <form method="POST" action="/upload" enctype="multipart/form-data" class="space-y-3">
+          <h2 class="text-lg font-semibold text-gray-700 mb-3">
+            📄 Cập nhật tri thức
+          </h2>
+          <form
+            method="POST"
+            action="/upload"
+            enctype="multipart/form-data"
+            class="space-y-3"
+          >
             <div>
-              <label class="block text-sm font-medium mb-1">Chọn file (.pdf, .txt, .docx...)</label>
-              <input type="file" name="file" multiple required
-                     class="block w-full border border-gray-300 rounded-lg px-3 py-2">
+              <label class="block text-sm font-medium mb-1"
+                >Chọn file (.pdf, .txt, .docx...)</label
+              >
+              <input
+                type="file"
+                name="file"
+                multiple
+                required
+                class="block w-full border border-gray-300 rounded-lg px-3 py-2"
+              />
             </div>
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium">
+            <button
+              type="submit"
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium"
+            >
               📤 Tải lên và cập nhật KB
             </button>
           </form>
@@ -63,48 +168,69 @@
 
         <!-- FAQ -->
         <section class="bg-white border border-gray-200 rounded-2xl shadow p-6">
-          <h2 class="text-lg font-semibold text-gray-700 mb-3">💬 Quản lý FAQ</h2>
+          <h2 class="text-lg font-semibold text-gray-700 mb-3">
+            💬 Quản lý FAQ
+          </h2>
           <form method="POST" action="/rebuild-faq" class="space-y-3">
-            <p class="text-sm text-gray-600">Sau khi chỉnh sửa file <code>local_faq.json</code>, hãy rebuild lại FAQ.</p>
-            <button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded-lg font-medium">
+            <p class="text-sm text-gray-600">
+              Sau khi chỉnh sửa file <code>local_faq.json</code>, hãy rebuild
+              lại FAQ.
+            </p>
+            <button
+              type="submit"
+              class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded-lg font-medium"
+            >
               🔁 Rebuild FAQ
             </button>
           </form>
         </section>
 
         <!-- Reset -->
-        <section class="bg-white border border-gray-200 rounded-2xl shadow p-6 md:col-span-2">
-          <h2 class="text-lg font-semibold text-gray-700 mb-3">🧹 Làm mới tri thức</h2>
+        <section
+          class="bg-white border border-gray-200 rounded-2xl shadow p-6 md:col-span-2"
+        >
+          <h2 class="text-lg font-semibold text-gray-700 mb-3">
+            🧹 Làm mới tri thức
+          </h2>
           <form method="POST" action="/reset-knowledge" class="space-y-3">
             <p class="text-sm text-gray-600">
-              Xóa toàn bộ dữ liệu <code>ChromaDB</code> và xây lại từ <code>old_docs</code>.
+              Xóa toàn bộ dữ liệu <code>ChromaDB</code> và xây lại từ
+              <code>old_docs</code>.
             </p>
-            <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium">
+            <button
+              type="submit"
+              class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium"
+            >
               ⚠️ Reset Knowledge Base
             </button>
           </form>
         </section>
 
         <!-- Danh sách file -->
-        <section class="bg-white border border-gray-200 rounded-2xl shadow p-6 md:col-span-2">
-          <h2 class="text-lg font-semibold text-gray-700 mb-3">📚 Danh sách tài liệu hiện có</h2>
+        <section
+          class="bg-white border border-gray-200 rounded-2xl shadow p-6 md:col-span-2"
+        >
+          <h2 class="text-lg font-semibold text-gray-700 mb-3">
+            📚 Danh sách tài liệu hiện có
+          </h2>
           {% if knowledge_files %}
-            <ul class="list-disc pl-6 text-sm text-gray-700">
-              {% for f in knowledge_files %}
-                <li>{{ f }}</li>
-              {% endfor %}
-            </ul>
+          <ul class="list-disc pl-6 text-sm text-gray-700">
+            {% for f in knowledge_files %}
+            <li>{{ f }}</li>
+            {% endfor %}
+          </ul>
           {% else %}
-            <p class="text-gray-500 text-sm italic">Chưa có tài liệu nào.</p>
+          <p class="text-gray-500 text-sm italic">Chưa có tài liệu nào.</p>
           {% endif %}
         </section>
-
       </div>
-    {% endif %}
-  </main>
+      {% endif %}
+    </main>
 
-  <footer class="text-center text-gray-500 text-sm py-6 mt-10 border-t border-gray-200">
-    © 2025 PTIT Virtual Assistant – Flask + LangChain
-  </footer>
-</body>
+    <footer
+      class="text-center text-gray-500 text-sm py-6 mt-10 border-t border-gray-200"
+    >
+      © 2025 PTIT Virtual Assistant – Flask + LangChain
+    </footer>
+  </body>
 </html>
