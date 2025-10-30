@@ -161,17 +161,27 @@ def delete_session():
 # 🧠 ADMIN QUẢN LÝ TRI THỨC
 # ===========================================
 
-@app.route("/admin", methods=["GET"])
+@app.route("/admin", methods=["GET", "POST"])
 def admin_page():
-    knowledge_files = []
-    if os.path.exists(OLD_DOCS_DIR):
-        knowledge_files = [
-            f for f in os.listdir(OLD_DOCS_DIR)
-            if os.path.isfile(os.path.join(OLD_DOCS_DIR, f))
-        ]
-    message = request.args.get("msg")
-    error = request.args.get("err")
-    return render_template("admin.html", auth=True, knowledge_files=knowledge_files, message=message, error=error)
+    admin_password = os.getenv("ADMIN_PASSWORD")
+
+    if request.method == "POST":
+        pw = request.form.get("password", "").strip()
+        if not pw:
+            return render_template("admin.html", auth=False, error="Vui lòng nhập mật khẩu.")
+        if pw != admin_password:
+            return render_template("admin.html", auth=False, error="Sai mật khẩu quản trị.")
+
+        knowledge_files = []
+        if os.path.exists(OLD_DOCS_DIR):
+            knowledge_files = [
+                f for f in os.listdir(OLD_DOCS_DIR)
+                if os.path.isfile(os.path.join(OLD_DOCS_DIR, f))
+            ]
+        return render_template("admin.html", auth=True, knowledge_files=knowledge_files)
+
+    # Mặc định hiển thị form đăng nhập
+    return render_template("admin.html", auth=False)
 
 
 # --- Upload file tri thức ---
