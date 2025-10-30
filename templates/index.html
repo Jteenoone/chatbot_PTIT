@@ -2,81 +2,87 @@
 <html lang="vi">
   <head>
     <meta charset="utf-8" />
+    <title>Trợ lý Ảo PTIT</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <link
       rel="apple-touch-icon"
       sizes="57x57"
-      href="./ico/apple-icon-57x57.png"
+      href="{{ url_for('static', filename='ico/apple-icon-57x57.png') }}"
     />
     <link
       rel="apple-touch-icon"
       sizes="60x60"
-      href="./ico/apple-icon-60x60.png"
+      href="{{ url_for('static', filename='ico/apple-icon-60x60.png') }}"
     />
     <link
       rel="apple-touch-icon"
       sizes="72x72"
-      href="./ico/apple-icon-72x72.png"
+      href="{{ url_for('static', filename='ico/apple-icon-72x72.png') }}"
     />
     <link
       rel="apple-touch-icon"
       sizes="76x76"
-      href="./ico/apple-icon-76x76.png"
+      href="{{ url_for('static', filename='ico/apple-icon-76x76.png') }}"
     />
     <link
       rel="apple-touch-icon"
       sizes="114x114"
-      href="./ico/apple-icon-114x114.png"
+      href="{{ url_for('static', filename='ico/apple-icon-114x114.png') }}"
     />
     <link
       rel="apple-touch-icon"
       sizes="120x120"
-      href="./ico/apple-icon-120x120.png"
+      href="{{ url_for('static', filename='ico/apple-icon-120x120.png') }}"
     />
     <link
       rel="apple-touch-icon"
       sizes="144x144"
-      href="./ico/apple-icon-144x144.png"
+      href="{{ url_for('static', filename='ico/apple-icon-144x144.png') }}"
     />
     <link
       rel="apple-touch-icon"
       sizes="152x152"
-      href="./ico/apple-icon-152x152.png"
+      href="{{ url_for('static', filename='ico/apple-icon-152x152.png') }}"
     />
     <link
       rel="apple-touch-icon"
       sizes="180x180"
-      href="./ico/apple-icon-180x180.png"
+      href="{{ url_for('static', filename='ico/apple-icon-180x180.png') }}"
     />
     <link
       rel="icon"
       type="image/png"
       sizes="192x192"
-      href="./ico/android-icon-192x192.png"
+      href="{{ url_for('static', filename='ico/android-icon-192x192.png') }}"
     />
     <link
       rel="icon"
       type="image/png"
       sizes="32x32"
-      href="./ico/favicon-32x32.png"
+      href="{{ url_for('static', filename='ico/favicon-32x32.png') }}"
     />
     <link
       rel="icon"
       type="image/png"
       sizes="96x96"
-      href="./ico/favicon-96x96.png"
+      href="{{ url_for('static', filename='ico/favicon-96x96.png') }}"
     />
     <link
       rel="icon"
       type="image/png"
       sizes="16x16"
-      href="./ico/favicon-16x16.png"
+      href="{{ url_for('static', filename='ico/favicon-16x16.png') }}"
     />
-    <link rel="manifest" href="./ico/manifest.json" />
+    <link
+      rel="manifest"
+      href="{{ url_for('static', filename='ico/manifest.json') }}"
+    />
     <meta name="msapplication-TileColor" content="#ffffff" />
-    <meta name="msapplication-TileImage" content="./ico/ms-icon-144x144.png" />
+    <meta
+      name="msapplication-TileImage"
+      content="{{ url_for('static', filename='ico/ms-icon-144x144.png') }}"
+    />
     <meta name="theme-color" content="#ffffff" />
-    <title>Trợ lý Ảo PTIT</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       .scrollbar::-webkit-scrollbar {
@@ -103,7 +109,7 @@
         </div>
         <div>
           <a
-            href="./ico/admin"
+            href="/admin"
             class="text-xs px-3 py-1 border border-red-200 text-red-700 rounded-lg hover:bg-red-50"
             >Trang quản trị</a
           >
@@ -127,7 +133,6 @@
             </button>
           </form>
         </div>
-
         {% if sessions %}
         <div class="space-y-2">
           {% for s in sessions|reverse %}
@@ -140,7 +145,6 @@
               >
                 {{ s.name }}
               </a>
-
               <div class="flex gap-2 items-center">
                 <!-- Nút đổi tên -->
                 <form method="GET" action="{{ url_for('index') }}">
@@ -150,7 +154,6 @@
                     ✏️
                   </button>
                 </form>
-
                 <!-- Nút xóa -->
                 <form
                   method="POST"
@@ -162,9 +165,7 @@
                 </form>
               </div>
             </div>
-
             <div class="mt-2 text-xs text-gray-500">{{ s.created }}</div>
-
             <!-- Form đổi tên chỉ hiển thị khi rename=1 và session_id trùng -->
             {% if request.args.get('rename') == '1' and
             request.args.get('session_id') == s.id %}
@@ -247,7 +248,6 @@
           </div>
           {% endif %}
         </div>
-
         <!-- Input form -->
         <form
           method="POST"
@@ -277,17 +277,18 @@
         </form>
       </main>
     </div>
-
     <script>
       // Submit on Enter, allow newline with Shift+Enter
       const textarea = document.getElementById("chat-input");
       const form = document.getElementById("chat-form");
-      textarea.addEventListener("keydown", function (e) {
-        if (e.key === "Enter" && !e.shiftKey) {
-          e.preventDefault();
-          form.submit();
-        }
-      });
+      if (textarea && form) {
+        textarea.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            form.submit();
+          }
+        });
+      }
     </script>
   </body>
 </html>
