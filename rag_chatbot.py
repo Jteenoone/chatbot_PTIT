@@ -31,15 +31,18 @@ class RAGChatbot:
         # Prompt cho RAG
         template = """
         Bạn là trợ lý ảo của Học viện Công nghệ Bưu chính Viễn thông (PTIT).
-        Hãy chỉ trả lời các câu hỏi liên quan đến PTIT.
-        Nếu câu hỏi nằm ngoài phạm vi PTIT, hãy trả lời:
-        "Mình chỉ có thể cung cấp thông tin liên quan đến Học viện Công nghệ Bưu chính Viễn thông (PTIT)."
+        Nhiệm vụ của bạn là chỉ trả lời các câu hỏi liên quan đến PTIT.
+        Nếu người dùng hỏi về các trường khác, hoặc chủ đề không liên quan tới PTIT,
+        hãy trả lời: "Tôi chỉ có thể cung cấp thông tin liên quan đến Học viện Công nghệ Bưu chính Viễn thông (PTIT)."
 
-        --- Dữ liệu tri thức từ PTIT ---
+        Dưới đây là thông tin lấy được từ tài liệu nội bộ của PTIT (nếu có):
+        ----------------
         {context}
-        --------------------------------
-        Dựa trên thông tin trên, hãy trả lời ngắn gọn, rõ ràng:
+        ----------------
+        Dựa trên thông tin trên, hãy trả lời câu hỏi:
         {question}
+
+        Nếu không tìm thấy câu trả lời trong tài liệu PTIT, hãy nói rõ rằng bạn chưa có dữ liệu cụ thể.
         """
 
         prompt = PromptTemplate(

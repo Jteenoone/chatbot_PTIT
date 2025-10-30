@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 # --- Module chính ---
 from rag_chatbot import RAGChatbot
 from faq_service import FAQService
-from rag_system import initialize_vector_store, update_knowledge_base_auto
+from rag_system import add_or_update_file, delete_knowledge, chatbot_reload_callback
 
 load_dotenv()
 app = Flask(__name__)
@@ -21,7 +21,18 @@ EMBEDDING_MODEL = "text-embedding-3-small"
 rag_chatbot = RAGChatbot()
 faq_service = FAQService()
 
-# --- HÀM TIỆN ÍCH ---
+# Cho phép reload chatbot sau khi cập nhật tri thức
+def reload_chatbot():
+    global rag_chatbot
+    rag_chatbot = RAGChatbot()
+
+chatbot_reload_callback = reload_chatbot
+
+
+# ===========================================
+# 🧾 LỊCH SỬ TRÒ CHUYỆN
+# ===========================================
+
 def load_sessions():
     """Đọc file chat_history.json an toàn."""
     if not os.path.exists(CHAT_HISTORY_FILE):
@@ -32,11 +43,10 @@ def load_sessions():
             if not content:
                 return []
             data = json.loads(content)
-            if isinstance(data, list):
-                return data
-            return []
+            return data if isinstance(data, list) else []
     except Exception:
         return []
+
 
 def save_sessions(sessions):
     """Lưu danh sách session, loại bỏ các session rỗng."""
@@ -47,8 +57,8 @@ def save_sessions(sessions):
     except Exception as e:
         print("Lỗi khi lưu sessions:", e)
 
+
 def find_session(sid):
-    """Tìm session theo id."""
     sessions = load_sessions()
     if not sid:
         return None, sessions
@@ -57,8 +67,8 @@ def find_session(sid):
             return s, sessions
     return None, sessions
 
+
 def create_session(initial_name=None):
-    """Tạo session mới."""
     s = {
         "id": str(uuid.uuid4()),
         "name": initial_name or "Cuộc trò chuyện mới",
@@ -70,7 +80,10 @@ def create_session(initial_name=None):
     save_sessions(sessions)
     return s, sessions
 
-# --- ROUTES ---
+
+# ===========================================
+# 💬 ROUTES CHATBOT
+# ===========================================
 
 @app.route("/", methods=["GET"])
 def index():
@@ -81,12 +94,14 @@ def index():
         current, _ = find_session(sid)
     return render_template("index.html", sessions=sessions, current=current)
 
+
 @app.route("/send", methods=["POST"])
 def send():
     text = (request.form.get("message") or "").strip()
     sid = request.form.get("session_id")
+
+    # Không lưu tin nhắn trống
     if not text:
-        # Không lưu tin nhắn rỗng
         return redirect(url_for("index", session_id=sid) if sid else url_for("index"))
 
     s, sessions = find_session(sid)
@@ -100,11 +115,10 @@ def send():
         "ts": datetime.datetime.now().isoformat()
     })
 
-    # ✅ Ưu tiên FAQ trước
+    # Ưu tiên FAQ
     try:
         faq_reply = faq_service.check(text)
         if faq_reply:
-            # reply = f"📘 Trả lời từ câu hỏi thường gặp:\n{faq_reply}"
             reply = faq_reply
         else:
             reply = rag_chatbot.get_answer(text)
@@ -118,104 +132,117 @@ def send():
     })
 
     if s.get("name") == "Cuộc trò chuyện mới":
-        s["name"] = (text[:40] + ("..." if len(text) > 40 else ""))
+        s["name"] = text[:40] + ("..." if len(text) > 40 else "")
 
     save_sessions(sessions)
     return redirect(url_for("index", session_id=s["id"]))
 
-@app.route("/new-session", methods=["POST"])
-def new_session():
-    return redirect(url_for("index"))
 
 @app.route("/rename-session", methods=["POST"])
 def rename_session():
     sid = request.form.get("session_id")
     new_name = (request.form.get("new_name") or "").strip()
-    if not new_name:
-        return redirect(url_for("index", session_id=sid))
     s, sessions = find_session(sid)
-    if s:
+    if s and new_name:
         s["name"] = new_name
         save_sessions(sessions)
     return redirect(url_for("index", session_id=sid))
 
+
 @app.route("/delete-session", methods=["POST"])
 def delete_session():
     sid = request.form.get("session_id")
-    sessions = load_sessions()
-    sessions = [s for s in sessions if s.get("id") != sid]
+    sessions = [s for s in load_sessions() if s.get("id") != sid]
     save_sessions(sessions)
     return redirect(url_for("index"))
 
-# --- ADMIN ---
+
+# ===========================================
+# 🧠 ADMIN QUẢN LÝ TRI THỨC
+# ===========================================
+
 @app.route("/admin", methods=["GET"])
 def admin_page():
-    if not session.get("is_admin"):
-        return render_template("admin.html", auth=False)
     knowledge_files = []
     if os.path.exists(OLD_DOCS_DIR):
         knowledge_files = [
             f for f in os.listdir(OLD_DOCS_DIR)
             if os.path.isfile(os.path.join(OLD_DOCS_DIR, f))
         ]
-    return render_template("admin.html", auth=True, knowledge_files=knowledge_files)
+    message = request.args.get("msg")
+    error = request.args.get("err")
+    return render_template("admin.html", auth=True, knowledge_files=knowledge_files, message=message, error=error)
 
-@app.route("/admin-login", methods=["POST"])
-def admin_login():
-    pw = request.form.get("password")
-    if pw and pw == os.getenv("ADMIN_PASSWORD"):
-        session["is_admin"] = True
-        session["admin_pw"] = pw
-        return redirect(url_for("admin_page"))
-    return render_template("admin.html", auth=False, error="Sai mật khẩu.")
 
-@app.route("/admin-logout", methods=["POST"])
-def admin_logout():
-    session.pop("is_admin", None)
-    session.pop("admin_pw", None)
-    return redirect(url_for("admin_page"))
-
+# --- Upload file tri thức ---
 @app.route("/upload", methods=["POST"])
 def upload_file():
-    if not session.get("is_admin"):
-        return redirect(url_for("admin_page"))
     file = request.files.get("file")
     if not file or file.filename == "":
-        return render_template("admin.html", auth=True, error="Chưa chọn file.")
-    os.makedirs("new_docs", exist_ok=True)
-    path = os.path.join("new_docs", file.filename)
-    file.save(path)
-    update_knowledge_base_auto()
-    global rag_chatbot
-    rag_chatbot = RAGChatbot()
-    return redirect(url_for("admin_page"))
+        return redirect(url_for("admin_page", err="Chưa chọn file."))
 
+    file_name = file.filename
+    os.makedirs("./temp_uploads", exist_ok=True)
+    temp_path = os.path.join("./temp_uploads", file_name)
+    file.save(temp_path)
+
+    # Gọi RAG system để kiểm tra trùng tên
+    result = add_or_update_file(temp_path, force_replace=False)
+    if result.get("exists"):
+        return render_template("confirm_replace.html", file_name=file_name)
+
+    msg = result.get("message", "Đã cập nhật tri thức.")
+    return redirect(url_for("admin_page", msg=msg))
+
+
+# --- Xác nhận ghi đè file ---
+@app.route("/confirm-replace", methods=["POST"])
+def confirm_replace():
+    file_name = request.form.get("file_name")
+    decision = request.form.get("decision")
+    temp_path = os.path.join("./temp_uploads", file_name)
+
+    if decision == "yes":
+        result = add_or_update_file(temp_path, force_replace=True)
+        msg = result.get("message", "Đã ghi đè tri thức.")
+    else:
+        msg = "❌ Đã hủy cập nhật."
+
+    return redirect(url_for("admin_page", msg=msg))
+
+
+# --- Xóa tri thức ---
+@app.route("/delete-knowledge", methods=["POST"])
+def delete_knowledge_file():
+    file_name = request.form.get("file_name")
+    success = delete_knowledge(file_name)
+    msg = f"Đã xóa {file_name}" if success else f"Lỗi khi xóa {file_name}"
+    return redirect(url_for("admin_page", msg=msg))
+
+
+# --- Reset toàn bộ tri thức ---
 @app.route("/reset-knowledge", methods=["POST"])
 def reset_knowledge():
-    if not session.get("is_admin"):
-        return redirect(url_for("admin_page"))
     if os.path.exists(CHROMA_DB_PATH):
         shutil.rmtree(CHROMA_DB_PATH)
-    if os.path.exists(OLD_DOCS_DIR) and os.listdir(OLD_DOCS_DIR):
-        initialize_vector_store(CHROMA_DB_PATH, EMBEDDING_MODEL, OLD_DOCS_DIR)
-    else:
-        from langchain_openai import OpenAIEmbeddings
-        from langchain_chroma import Chroma
-        embeddings = OpenAIEmbeddings(model=EMBEDDING_MODEL)
-        Chroma(embedding_function=embeddings, persist_directory=CHROMA_DB_PATH)
-    global rag_chatbot
-    rag_chatbot = RAGChatbot()
-    return redirect(url_for("admin_page"))
+    os.makedirs(CHROMA_DB_PATH, exist_ok=True)
+    reload_chatbot()
+    return redirect(url_for("admin_page", msg="Đã reset lại cơ sở tri thức."))
 
+
+# --- Rebuild FAQ ---
 @app.route("/rebuild-faq", methods=["POST"])
 def rebuild_faq():
-    if not session.get("is_admin"):
-        return redirect(url_for("admin_page"))
     try:
         faq_service.rebuild()
-        return render_template("admin.html", auth=True, message="Đã rebuild FAQ thành công!")
+        return redirect(url_for("admin_page", msg="Đã rebuild FAQ thành công."))
     except Exception as e:
-        return render_template("admin.html", auth=True, error=f"Lỗi rebuild FAQ: {e}")
+        return redirect(url_for("admin_page", err=f"Lỗi rebuild FAQ: {e}"))
 
+
+# ===========================================
+# 🚀 CHẠY ỨNG DỤNG
+# ===========================================
 if __name__ == "__main__":
+    os.makedirs(OLD_DOCS_DIR, exist_ok=True)
     app.run(debug=True)

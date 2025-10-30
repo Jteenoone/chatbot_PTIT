@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xác nhận ghi đè tài liệu - Trợ lý Ảo PTIT</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-50 text-gray-800 flex items-center justify-center h-screen">
+  <div class="bg-white border border-gray-200 rounded-2xl shadow p-8 max-w-md text-center">
+    <h2 class="text-xl font-semibold text-gray-700 mb-4">⚠️ Tài liệu đã tồn tại</h2>
+    <p class="text-sm text-gray-600 mb-6">
+      Tài liệu <span class="font-semibold text-red-600">{{ file_name }}</span> đã tồn tại trong hệ thống.<br>
+      Bạn có chắc chắn muốn <strong>ghi đè</strong> lên tài liệu cũ không?
+    </p>
+
+    <form method="POST" action="/confirm-replace" class="flex flex-col gap-3">
+      <input type="hidden" name="file_name" value="{{ file_name }}">
+      <button name="decision" value="yes" type="submit"
+              class="bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium">
+        ✅ Có, ghi đè tài liệu
+      </button>
+      <button name="decision" value="no" type="submit"
+              class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded-lg font-medium">
+        ❌ Không, hủy bỏ
+      </button>
+    </form>
+
+    <div class="mt-6">
+      <a href="/admin" class="text-sm text-red-600 underline hover:text-red-800">← Quay lại trang quản trị</a>
+    </div>
+  </div>
+</body>
+</html>

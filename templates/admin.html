@@ -17,106 +17,92 @@
   </header>
 
   <main class="max-w-5xl mx-auto px-4">
-    {% if not auth %}
-      <!-- FORM ĐĂNG NHẬP ADMIN -->
-      <section class="bg-white border border-gray-200 rounded-2xl shadow p-6 max-w-md mx-auto">
-        <h2 class="text-lg font-semibold text-gray-700 mb-3">Đăng nhập quản trị</h2>
-        {% if error %}
-          <p class="text-red-600 text-sm mb-3">{{ error }}</p>
-        {% endif %}
-        <form method="POST" action="/admin-login" class="space-y-4">
+    {% if message %}
+      <div class="bg-green-100 text-green-700 px-4 py-2 mb-4 rounded-lg shadow">{{ message }}</div>
+    {% endif %}
+    {% if error %}
+      <div class="bg-red-100 text-red-700 px-4 py-2 mb-4 rounded-lg shadow">{{ error }}</div>
+    {% endif %}
+
+    <div class="grid md:grid-cols-2 gap-6">
+
+      <!-- KHỐI UPLOAD -->
+      <section class="bg-white border border-gray-200 rounded-2xl shadow p-6">
+        <h2 class="text-lg font-semibold text-gray-700 mb-3">📄 Thêm / Cập nhật tri thức</h2>
+        <form method="POST" action="/upload" enctype="multipart/form-data" class="space-y-3">
           <div>
-            <label class="block text-sm font-medium">Mật khẩu quản trị:</label>
-            <input type="password" name="password" required
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1 focus:ring-2 focus:ring-red-600">
+            <label class="block text-sm font-medium mb-1">Chọn file tài liệu (.pdf, .txt, .docx...)</label>
+            <input type="file" name="file" required
+                   class="block w-full border border-gray-300 rounded-lg px-3 py-2">
           </div>
-          <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium">
-            Đăng nhập
+          <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium">
+            📤 Tải lên và cập nhật tri thức
           </button>
         </form>
       </section>
 
-    {% else %}
-      <!-- TRANG ADMIN CHÍNH -->
-      {% if message %}
-        <div class="bg-green-100 text-green-700 px-4 py-2 mb-4 rounded-lg">{{ message }}</div>
-      {% endif %}
-      {% if error %}
-        <div class="bg-red-100 text-red-700 px-4 py-2 mb-4 rounded-lg">{{ error }}</div>
-      {% endif %}
+      <!-- KHỐI FAQ -->
+      <section class="bg-white border border-gray-200 rounded-2xl shadow p-6">
+        <h2 class="text-lg font-semibold text-gray-700 mb-3">💬 Quản lý câu hỏi thường gặp (FAQ)</h2>
+        <form method="POST" action="/rebuild-faq" class="space-y-3">
+          <p class="text-sm text-gray-600">
+            Sau khi chỉnh sửa file <code>local_faq.json</code>, nhấn nút này để cập nhật embedding FAQ.
+          </p>
+          <button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded-lg font-medium">
+            🔁 Rebuild FAQ
+          </button>
+        </form>
+      </section>
 
-      <div class="grid md:grid-cols-2 gap-6">
+      <!-- KHỐI RESET KB -->
+      <section class="bg-white border border-gray-200 rounded-2xl shadow p-6 md:col-span-2">
+        <h2 class="text-lg font-semibold text-gray-700 mb-3">🧹 Làm mới toàn bộ cơ sở tri thức</h2>
+        <form method="POST" action="/reset-knowledge" class="space-y-3">
+          <p class="text-sm text-gray-600">
+            Thao tác này sẽ xóa toàn bộ dữ liệu <code>ChromaDB</code> và xây lại tri thức từ thư mục <code>old_docs</code>.
+          </p>
+          <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium">
+            ⚠️ Reset Knowledge Base
+          </button>
+        </form>
+      </section>
 
-        <!-- KHỐI UPLOAD -->
-        <section class="bg-white border border-gray-200 rounded-2xl shadow p-6">
-          <h2 class="text-lg font-semibold text-gray-700 mb-3">📄 Cập nhật tri thức</h2>
-          <form method="POST" action="/upload" enctype="multipart/form-data" class="space-y-3">
-            <div>
-              <label class="block text-sm font-medium mb-1">Chọn file tài liệu (.pdf, .txt, .docx...)</label>
-              <input type="file" name="file" required
-                     class="block w-full border border-gray-300 rounded-lg px-3 py-2">
-            </div>
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium">
-              📤 Tải lên và cập nhật KB
-            </button>
-          </form>
-        </section>
-
-        <!-- KHỐI FAQ -->
-        <section class="bg-white border border-gray-200 rounded-2xl shadow p-6">
-          <h2 class="text-lg font-semibold text-gray-700 mb-3">💬 Quản lý câu hỏi thường gặp (FAQ)</h2>
-          <form method="POST" action="/rebuild-faq" class="space-y-3">
-            <p class="text-sm text-gray-600">
-              Sau khi chỉnh sửa file <code>local_faq.json</code>, hãy nhấn nút này để cập nhật embedding cho FAQ.
-            </p>
-            <button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded-lg font-medium">
-              🔁 Rebuild FAQ
-            </button>
-          </form>
-        </section>
-
-        <!-- KHỐI RESET KB -->
-        <section class="bg-white border border-gray-200 rounded-2xl shadow p-6 md:col-span-2">
-          <h2 class="text-lg font-semibold text-gray-700 mb-3">🧹 Làm mới toàn bộ cơ sở tri thức</h2>
-          <form method="POST" action="/reset-knowledge" class="space-y-3">
-            <p class="text-sm text-gray-600">
-              Thao tác này sẽ xóa toàn bộ dữ liệu <code>ChromaDB</code> và xây lại tri thức từ thư mục <code>old_docs</code>.
-            </p>
-            <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-medium">
-              ⚠️ Reset Knowledge Base
-            </button>
-          </form>
-        </section>
-
-        <!-- DANH SÁCH FILE TRI THỨC -->
-        <section class="bg-white border border-gray-200 rounded-2xl shadow p-6 md:col-span-2">
-          <h2 class="text-lg font-semibold text-gray-700 mb-3">📚 Danh sách tài liệu hiện có</h2>
-          {% if knowledge_files %}
-            <ul class="list-disc pl-6 text-sm text-gray-700">
+      <!-- DANH SÁCH FILE TRI THỨC -->
+      <section class="bg-white border border-gray-200 rounded-2xl shadow p-6 md:col-span-2">
+        <h2 class="text-lg font-semibold text-gray-700 mb-3">📚 Danh sách tài liệu hiện có</h2>
+        {% if knowledge_files %}
+          <table class="w-full text-sm border border-gray-200 rounded-lg overflow-hidden">
+            <thead class="bg-gray-100 text-gray-700">
+              <tr>
+                <th class="py-2 px-3 text-left">Tên tài liệu</th>
+                <th class="py-2 px-3 text-right">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
               {% for f in knowledge_files %}
-                <li>{{ f }}</li>
+              <tr class="border-t border-gray-200">
+                <td class="py-2 px-3">{{ f }}</td>
+                <td class="py-2 px-3 text-right">
+                  <form method="POST" action="/delete-knowledge" onsubmit="return confirm('Xóa tài liệu này?');" class="inline">
+                    <input type="hidden" name="file_name" value="{{ f }}">
+                    <button type="submit" class="text-red-600 hover:underline">🗑️ Xóa</button>
+                  </form>
+                </td>
+              </tr>
               {% endfor %}
-            </ul>
-          {% else %}
-            <p class="text-gray-500 text-sm italic">Chưa có tài liệu nào trong hệ thống.</p>
-          {% endif %}
-        </section>
+            </tbody>
+          </table>
+        {% else %}
+          <p class="text-gray-500 text-sm italic">Chưa có tài liệu nào trong hệ thống.</p>
+        {% endif %}
+      </section>
 
-        <!-- LOGOUT -->
-        <section class="bg-white border border-gray-200 rounded-2xl shadow p-6 md:col-span-2">
-          <form method="POST" action="/admin-logout">
-            <button type="submit"
-                    class="w-full bg-gray-700 hover:bg-gray-800 text-white py-2 rounded-lg font-medium">
-              🚪 Đăng xuất
-            </button>
-          </form>
-        </section>
-      </div>
-    {% endif %}
+    </div>
   </main>
 
   <footer class="text-center text-gray-500 text-sm py-6 mt-10 border-t border-gray-200">
     © 2025 PTIT Virtual Assistant – Flask + LangChain
   </footer>
+
 </body>
 </html>
