@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 import os, json, shutil, uuid, datetime
 from dotenv import load_dotenv
 
@@ -11,7 +11,7 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET", "ptit_secret_123")
 
-# --- Đường dẫn chính ---
+# --- Đường dẫn ---
 CHAT_HISTORY_FILE = "chat_history.json"
 OLD_DOCS_DIR = "./old_docs"
 CHROMA_DB_PATH = "./knowledge_base_ptit"
@@ -21,7 +21,6 @@ EMBEDDING_MODEL = "text-embedding-3-small"
 rag_chatbot = RAGChatbot()
 faq_service = FAQService()
 
-# Cho phép reload chatbot sau khi cập nhật tri thức
 def reload_chatbot():
     global rag_chatbot
     rag_chatbot = RAGChatbot()
@@ -30,33 +29,23 @@ chatbot_reload_callback = reload_chatbot
 
 
 # ===========================================
-# 🧾 LỊCH SỬ TRÒ CHUYỆN
+# 🧾 QUẢN LÝ SESSION
 # ===========================================
 
 def load_sessions():
-    """Đọc file chat_history.json an toàn."""
     if not os.path.exists(CHAT_HISTORY_FILE):
         return []
     try:
         with open(CHAT_HISTORY_FILE, "r", encoding="utf-8") as f:
             content = f.read().strip()
-            if not content:
-                return []
-            data = json.loads(content)
-            return data if isinstance(data, list) else []
+            return json.loads(content) if content else []
     except Exception:
         return []
 
-
 def save_sessions(sessions):
-    """Lưu danh sách session, loại bỏ các session rỗng."""
     clean = [s for s in sessions if s.get("messages")]
-    try:
-        with open(CHAT_HISTORY_FILE, "w", encoding="utf-8") as f:
-            json.dump(clean, f, ensure_ascii=False, indent=2)
-    except Exception as e:
-        print("Lỗi khi lưu sessions:", e)
-
+    with open(CHAT_HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(clean, f, ensure_ascii=False, indent=2)
 
 def find_session(sid):
     sessions = load_sessions()
@@ -66,7 +55,6 @@ def find_session(sid):
         if s.get("id") == sid:
             return s, sessions
     return None, sessions
-
 
 def create_session(initial_name=None):
     s = {
@@ -80,30 +68,26 @@ def create_session(initial_name=None):
     save_sessions(sessions)
     return s, sessions
 
-
 # ===========================================
-# 💬 ROUTES CHATBOT
+# ROUTES
 # ===========================================
 
 @app.route("/", methods=["GET"])
 def index():
     sid = request.args.get("session_id")
     sessions = load_sessions()
-    current = None
-    if sid:
-        current, _ = find_session(sid)
+    current, _ = find_session(sid) if sid else (None, None)
     return render_template("index.html", sessions=sessions, current=current)
-
 
 @app.route("/send", methods=["POST"])
 def send():
     text = (request.form.get("message") or "").strip()
     sid = request.form.get("session_id")
 
-    # Không lưu tin nhắn trống
     if not text:
-        return redirect(url_for("index", session_id=sid) if sid else url_for("index"))
+        return jsonify({"error": "Tin nhắn trống."}), 400
 
+    # Tìm hoặc tạo session
     s, sessions = find_session(sid)
     if not s:
         s, sessions = create_session(text[:40])
@@ -115,13 +99,9 @@ def send():
         "ts": datetime.datetime.now().isoformat()
     })
 
-    # Ưu tiên FAQ
     try:
         faq_reply = faq_service.check(text)
-        if faq_reply:
-            reply = faq_reply
-        else:
-            reply = rag_chatbot.get_answer(text)
+        reply = faq_reply or rag_chatbot.get_answer(text)
     except Exception as e:
         reply = f"Lỗi khi xử lý: {e}"
 
@@ -135,8 +115,12 @@ def send():
         s["name"] = text[:40] + ("..." if len(text) > 40 else "")
 
     save_sessions(sessions)
-    return redirect(url_for("index", session_id=s["id"]))
 
+    return jsonify({
+        "reply": reply,
+        "session_id": s["id"],
+        "success": True
+    })
 
 @app.route("/rename-session", methods=["POST"])
 def rename_session():
@@ -156,15 +140,38 @@ def delete_session():
     save_sessions(sessions)
     return redirect(url_for("index"))
 
+@app.route("/new-session", methods=["POST"])
+def new_session():
+    s, sessions = create_session()
+    save_sessions(sessions)
+    return redirect(url_for("index", session_id=s["id"]))
+
+
 
 # ===========================================
-# 🧠 ADMIN QUẢN LÝ TRI THỨC
+# ADMIN QUẢN LÝ TRI THỨC
 # ===========================================
+
+from flask import session  # bạn đã import rồi nên giữ nguyên
 
 @app.route("/admin", methods=["GET", "POST"])
 def admin_page():
     admin_password = os.getenv("ADMIN_PASSWORD")
 
+    msg = request.args.get("msg")
+    err = request.args.get("err")
+
+    # Nếu đã đăng nhập trước đó
+    if session.get("is_admin"):
+        knowledge_files = []
+        if os.path.exists(OLD_DOCS_DIR):
+            knowledge_files = [
+                f for f in os.listdir(OLD_DOCS_DIR)
+                if os.path.isfile(os.path.join(OLD_DOCS_DIR, f))
+            ]
+        return render_template("admin.html", auth=True, knowledge_files=knowledge_files, msg=msg, err=err)
+
+    # Xử lý đăng nhập
     if request.method == "POST":
         pw = request.form.get("password", "").strip()
         if not pw:
@@ -172,15 +179,18 @@ def admin_page():
         if pw != admin_password:
             return render_template("admin.html", auth=False, error="Sai mật khẩu quản trị.")
 
+        # Đăng nhập thành công → lưu trạng thái
+        session["is_admin"] = True
+
         knowledge_files = []
         if os.path.exists(OLD_DOCS_DIR):
             knowledge_files = [
                 f for f in os.listdir(OLD_DOCS_DIR)
                 if os.path.isfile(os.path.join(OLD_DOCS_DIR, f))
             ]
-        return render_template("admin.html", auth=True, knowledge_files=knowledge_files)
+        return render_template("admin.html", auth=True, knowledge_files=knowledge_files, msg=msg, err=err)
 
-    # Mặc định hiển thị form đăng nhập
+    # Mặc định: nếu chưa đăng nhập
     return render_template("admin.html", auth=False)
 
 
@@ -201,7 +211,7 @@ def upload_file():
     if result.get("exists"):
         return render_template("confirm_replace.html", file_name=file_name)
 
-    msg = result.get("message", "Đã cập nhật tri thức.")
+    msg = f"✅ Đã thêm file '{file_name}' thành công!!!!"
     return redirect(url_for("admin_page", msg=msg))
 
 
@@ -233,11 +243,32 @@ def delete_knowledge_file():
 # --- Reset toàn bộ tri thức ---
 @app.route("/reset-knowledge", methods=["POST"])
 def reset_knowledge():
-    if os.path.exists(CHROMA_DB_PATH):
-        shutil.rmtree(CHROMA_DB_PATH)
-    os.makedirs(CHROMA_DB_PATH, exist_ok=True)
-    reload_chatbot()
-    return redirect(url_for("admin_page", msg="Đã reset lại cơ sở tri thức."))
+    try:
+        try:
+            if rag_chatbot:
+                rag_chatbot.close()
+        except Exception as e:
+            print("Không thể đóng DB:", e)
+
+        if os.path.exists(CHROMA_DB_PATH):
+            import stat
+
+            def force_remove_readonly(func, path, exc_info):
+                os.chmod(path, stat.S_IWRITE)
+                os.remove(path)
+
+            shutil.rmtree(CHROMA_DB_PATH, onerror=force_remove_readonly)
+
+        os.makedirs(CHROMA_DB_PATH, exist_ok=True)
+
+        reload_chatbot()
+
+        msg = "Đã reset lại cơ sở tri thức."
+    except Exception as e:
+        msg = f"Lỗi khi reset tri thức: {e}"
+
+    return redirect(url_for("admin_page", msg=msg))
+
 
 
 # --- Rebuild FAQ ---
@@ -249,9 +280,14 @@ def rebuild_faq():
     except Exception as e:
         return redirect(url_for("admin_page", err=f"Lỗi rebuild FAQ: {e}"))
 
+@app.route("/logout")
+def logout():
+    session.pop("is_admin", None)
+    return redirect(url_for("admin_page"))
+
 
 # ===========================================
-# 🚀 CHẠY ỨNG DỤNG
+# CHẠY ỨNG DỤNG
 # ===========================================
 if __name__ == "__main__":
     os.makedirs(OLD_DOCS_DIR, exist_ok=True)

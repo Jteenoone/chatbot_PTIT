@@ -12,7 +12,7 @@ from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 
 # ==============================
-# ⚙️ Cấu hình
+# Cấu hình
 # ==============================
 load_dotenv()
 EMBEDDING_MODEL = "text-embedding-3-small"
@@ -26,10 +26,10 @@ chatbot_reload_callback = None  # Flask sẽ gán callback reload chatbot
 
 
 # ==============================
-# 🔹 Xử lý & nhúng tài liệu
+# Xử lý & nhúng tài liệu
 # ==============================
 def process_file(file_path):
-    """Đọc & chia nhỏ nội dung file."""
+    """Đọc & chia nhỏ nội dung file"""
     try:
         loader = UnstructuredFileLoader(file_path)
         docs = loader.load()
@@ -41,15 +41,14 @@ def process_file(file_path):
             c.metadata["file_name"] = os.path.basename(file_path)
         return chunks
     except Exception as e:
-        print(f"[❌] Lỗi khi xử lý {file_path}: {e}")
+        print(f"Lỗi khi xử lý {file_path}: {e}")
         return []
 
 
 # ==============================
-# 🔹 Khởi tạo hoặc tải vector store
+# Khởi tạo hoặc tải vector store
 # ==============================
 def get_vector_store():
-    """Tạo hoặc load vector store cache."""
     global _vector_cache
     if _vector_cache is None:
         embeddings = OpenAIEmbeddings(model=EMBEDDING_MODEL)
@@ -58,7 +57,7 @@ def get_vector_store():
 
 
 # ==============================
-# 🔹 Ghi log cập nhật
+# Ghi log cập nhật
 # ==============================
 def log_update(file_name, status, chunks, duration):
     entry = {
@@ -82,10 +81,9 @@ def get_update_logs(limit=10):
 
 
 # ==============================
-# 🔹 Xóa tri thức theo file
+# Xóa tri thức theo file
 # ==============================
 def delete_knowledge(file_name):
-    """Xóa file & vector tương ứng"""
     try:
         embeddings = OpenAIEmbeddings(model=EMBEDDING_MODEL)
         store = Chroma(persist_directory=CHROMA_DB_PATH, embedding_function=embeddings)
@@ -95,30 +93,22 @@ def delete_knowledge(file_name):
         if os.path.exists(old_path):
             os.remove(old_path)
 
-        print(f"[🗑️] Đã xóa tri thức: {file_name}")
+        print(f"Đã xóa tri thức: {file_name}")
         return True
     except Exception as e:
-        print(f"[❌] Lỗi khi xóa {file_name}: {e}")
+        print(f"Lỗi khi xóa {file_name}: {e}")
         return False
 
 
 # ==============================
-# 🔹 Thêm hoặc cập nhật tri thức
+# Thêm hoặc cập nhật tri thức
 # ==============================
 def add_or_update_file(file_path, force_replace=False):
-    """
-    Nếu file đã tồn tại:
-        - Nếu force_replace=True => xóa file + vector cũ, rồi thêm mới.
-        - Nếu False => trả về cảnh báo.
-    """
     os.makedirs(OLD_DOCS_DIR, exist_ok=True)
     file_name = os.path.basename(file_path)
     old_path = os.path.join(OLD_DOCS_DIR, file_name)
-
-    # Nếu file tồn tại mà chưa chọn ghi đè
     if os.path.exists(old_path) and not force_replace:
         return {"exists": True, "file": file_name}
-
     start = time.time()
     try:
         store = get_vector_store()
@@ -152,11 +142,10 @@ def add_or_update_file(file_path, force_replace=False):
 
 
 # ==============================
-# 🔹 Tự động cập nhật nền (nếu cần)
+# Tự động cập nhật nền (nếu cần)
 # ==============================
 
 def start_auto_update(interval=7200):
-    """Cập nhật tự động mỗi interval giây (nếu muốn)."""
     def loop():
         while True:
             try:
@@ -168,7 +157,7 @@ def start_auto_update(interval=7200):
 
 
 # ==============================
-# 🔹 Khi chạy trực tiếp
+# Khi chạy trực tiếp
 # ==============================
 if __name__ == "__main__":
     os.makedirs(OLD_DOCS_DIR, exist_ok=True)

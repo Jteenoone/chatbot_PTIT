@@ -73,7 +73,6 @@ class FAQService:
         return None
 
     def rebuild(self):
-        """Force rebuild vectors (call after editing local_faq.json)"""
         self.faq = self._load_faq()
         if os.path.exists(self.vec_path):
             try:
