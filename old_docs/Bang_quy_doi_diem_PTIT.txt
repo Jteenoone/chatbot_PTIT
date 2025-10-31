@@ -1,0 +1,31 @@
+PHỤ LỤC: BẢNG QUY ĐỔI ĐIỂM HỆ 10 SANG HỆ 4 - PTIT
+
+Điều 25. Thang điểm đánh giá
+---------------------------------
+1. Kết quả học tập được đánh giá dựa theo hai loại thang điểm sau:
+
+a) Thang điểm 10 là thang điểm tiện ích, được sử dụng cho các điểm thành phần của một học phần.
+Các bảng ghi điểm thành phần (điểm kiểm tra giữa kỳ, điểm thi kết thúc học phần, điểm bài thi nghiệm/thực hành, điểm chuyên cần, …)
+sử dụng thang điểm 10 (từ 0 đến 10).
+
+b) Thang điểm 4 là thang điểm chính thức, trong đó điểm chữ (A, B, C, D, F) được sử dụng cho Điểm học phần
+và được quy đổi từ thang điểm 10 theo Bảng 1 dưới đây.
+
+BẢNG 1: QUY ĐỔI ĐIỂM TỪ HỆ 10 SANG HỆ 4
+
+Loại đạt có phân mức (áp dụng cho các học phần được tính vào điểm trung bình học tập):
+
+| Thang điểm 10 | Điểm chữ | Thang điểm 4 | Xếp loại       |
+|----------------|-----------|---------------|----------------|
+| 9.0 – 10.0     | A+        | 4.0           | Giỏi           |
+| 8.5 – 8.9      | A         | 3.7           | Giỏi           |
+| 8.0 – 8.4      | B+        | 3.5           | Khá            |
+| 7.0 – 7.9      | B         | 3.0           | Khá            |
+| 6.5 – 6.9      | C+        | 2.5           | Trung bình     |
+| 5.5 – 6.4      | C         | 2.0           | Trung bình     |
+| 5.0 – 5.4      | D+        | 1.5           | Trung bình yếu |
+| 4.0 – 4.9      | D         | 1.0           | Trung bình yếu |
+| Dưới 4.0       | F         | 0.0           | Kém            |
+
+Loại đạt không phân mức (áp dụng cho các học phần chỉ yêu cầu đạt, không tính vào điểm trung bình học tập):
+- Từ 5.0 trở lên: điểm chữ là P (Pass).
