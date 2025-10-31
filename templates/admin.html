@@ -219,9 +219,25 @@
             📚 Danh sách tài liệu hiện có
           </h2>
           {% if knowledge_files %}
-          <ul class="list-disc pl-6 text-sm text-gray-700">
+          <ul class="text-sm text-gray-700 space-y-2">
             {% for f in knowledge_files %}
-            <li>{{ f }}</li>
+            <li class="flex items-center justify-between">
+              <span class="truncate pr-3">{{ f }}</span>
+              <form
+                method="POST"
+                action="/delete-knowledge"
+                class="ml-3"
+                onsubmit="return confirm('Bạn có chắc muốn xóa {{ f }}?');"
+              >
+                <input type="hidden" name="file_name" value="{{ f }}" />
+                <button
+                  type="submit"
+                  class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg"
+                >
+                  Xóa
+                </button>
+              </form>
+            </li>
             {% endfor %}
           </ul>
           {% else %}

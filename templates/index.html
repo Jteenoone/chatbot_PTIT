@@ -100,11 +100,11 @@
         class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between"
       >
         <div class="flex items-center gap-3">
-          <div
-            class="w-9 h-9 grid place-items-center rounded-xl bg-red-600 text-white font-bold"
-          >
-            PT
-          </div>
+          <img
+            src="{{ url_for('static', filename='ico/android-icon-72x72.png') }}"
+            alt="PTIT Logo"
+            class="w-9 h-9 rounded-xl object-cover"
+          />
           <h1 class="text-lg font-semibold text-red-700">Trợ lý Ảo PTIT</h1>
         </div>
         <div>
@@ -202,7 +202,7 @@
         class="flex-1 bg-white border border-red-100 rounded-2xl p-4 flex flex-col"
       >
         <div
-          class="flex-1 overflow-y-auto p-4 space-y-4 scrollbar"
+          class="flex-1 overflow-y-auto p-4 space-y-0 scrollbar"
           id="chat-window"
         >
           {% if current %} {% for m in current.messages %} {% if m.role ==
@@ -281,11 +281,44 @@
       // Submit on Enter, allow newline with Shift+Enter
       const textarea = document.getElementById("chat-input");
       const form = document.getElementById("chat-form");
-      if (textarea && form) {
+      const chatWindow = document.getElementById("chat-window");
+
+      if (textarea && form && chatWindow) {
+        // Intercept submit to optimistically render user's message
+        form.addEventListener("submit", function () {
+          const text = (textarea.value || "").trim();
+          if (!text) return;
+
+          const wrapper = document.createElement("div");
+          wrapper.className = "flex justify-end items-start gap-3";
+
+          // User bubble
+          const bubble = document.createElement("div");
+          bubble.className =
+            "max-w-[80%] rounded-2xl px-4 py-3 bg-red-600 text-white";
+          bubble.textContent = text;
+
+          // Avatar
+          const avatar = document.createElement("div");
+          avatar.className =
+            "w-9 h-9 rounded-full bg-gray-800 text-white grid place-items-center";
+          avatar.textContent = "👤";
+
+          wrapper.appendChild(bubble);
+          wrapper.appendChild(avatar);
+          chatWindow.appendChild(wrapper);
+          chatWindow.scrollTop = chatWindow.scrollHeight;
+        });
+
+        // Keydown: use requestSubmit so submit listeners run
         textarea.addEventListener("keydown", function (e) {
           if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
-            form.submit();
+            if (typeof form.requestSubmit === "function") {
+              form.requestSubmit();
+            } else {
+              form.submit();
+            }
           }
         });
       }
